@@ -1,13 +1,20 @@
 /* sample code for ArduHMI */
 /* see project documentation under http://arduhmi.generationmake.de/ */
-#include <dog_7565R.h>
+//#include <dog_7565R.h>
+#include <DogGraphicDisplay.h>
 #include "ubuntumono_b_32.h"
 #include "ubuntumono_b_16.h"
 #include "ubuntumono_b_8.h"
 
 #define LOGO_LEN  386
 
+#if defined(ARDUINO_ARCH_AVR)
+  // AVR-specific code
 const byte logo[LOGO_LEN] __attribute__((section(".progmem.data")))=
+#else
+  // generic, non-platform specific code
+const byte logo[LOGO_LEN] =
+#endif
 {
    128, 24,
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -96,7 +103,12 @@ void setup() {
   init_backlight(true); //use monochrome backlight in this sample code. Please change it to your configuration
 //  DOG.initialize(6,5,7,8,9,DOGM132);   //SS = 10, 0,0= use Hardware SPI, 9 = A0, 4 = RESET, EA DOGM132-5 (=132x32 dots)
 //  DOG.initialize(6,5,7,8,9,DOGM128);   //SS = 10, 0,0= use Hardware SPI, 9 = A0, 4 = RESET, EA DOGM128-6 (=128x64 dots)
+#if defined(ARDUINO_ARCH_AVR)
+  // AVR-specific code
   DOG.initialize(6,0,0,8,9,DOGM128);   //SS = 10, 0,0= use Hardware SPI, 9 = A0, 4 = RESET, EA DOGM128-6 (=128x64 dots)
+#else
+  DOG.initialize(6,10,11,8,9,DOGM128);   //SS = 10, 0,0= use Hardware SPI, 9 = A0, 4 = RESET, EA DOGM128-6 (=128x64 dots)
+#endif
   DOG.clear();  //clear whole display
   DOG.picture(0,0,logo);
   delay(1000);
@@ -184,5 +196,8 @@ void init_backlight(boolean mono)
 //Use this funtion for monochrome backlight
 void mono_backlight(byte brightness)
 {
+#if defined(ARDUINO_ARCH_AVR)
+  // AVR-specific code
   analogWrite(backlight_led, brightness);  
+#endif
 }

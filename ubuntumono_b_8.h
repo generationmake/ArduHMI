@@ -4,7 +4,13 @@
 /* ./freetypeconverter -g 1 -s 8 -b 7 -n UBUNTUMONO_B_8 -f /usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf  */
 
 #define UBUNTUMONO_B_8_LEN 483
+#if defined(ARDUINO_ARCH_AVR)
+  // AVR-specific code
 const byte UBUNTUMONO_B_8[UBUNTUMONO_B_8_LEN] __attribute__((section(".progmem.data"))) = 
+#else
+  // generic, non-platform specific code
+const byte UBUNTUMONO_B_8[UBUNTUMONO_B_8_LEN] = 
+#endif
 {
 70,86,0x20,0x7E,5,8,1,5,
 0x00,0x00,0x00,0x00,0x00,
