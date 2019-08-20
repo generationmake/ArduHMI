@@ -71,6 +71,7 @@ int read_LCD_buttons()
 {
   int adc_key_in = analogRead(0);      // read the value from the sensor 
   // my buttons when read are centered at these valies: 0, 144, 329, 504, 741
+  // my buttons when read are centered at these values (MKR1010): 0, 11, 162, 354, 531, 763
   // we add approx 50 to those values and check to see if we are close
   if (adc_key_in > 1000) return btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
   if (adc_key_in < 50)   return btnRIGHT;  
@@ -84,7 +85,8 @@ int read_LCD_buttons()
 
 dog_7565R DOG;
 
-int backlight_led = 10;
+//int backlight_led = 10;
+int backlight_led = A6;
 void init_backlight(boolean mono);
 void mono_backlight(byte brightness);
 
@@ -106,6 +108,10 @@ void setup() {
 #if defined(ARDUINO_ARCH_AVR)
   // AVR-specific code
   DOG.initialize(6,0,0,8,9,DOGM128);   //SS = 10, 0,0= use Hardware SPI, 9 = A0, 4 = RESET, EA DOGM128-6 (=128x64 dots)
+#elif defined(ARDUINO_ARCH_SAMD)
+  // SAMD-specific code
+  DOG.initialize(6,0,0,0,1,DOGM128);   //SS = 6, 0,0= use Hardware SPI, 0 = A0, 1 = RESET, EA DOGM128-6 (=128x64 dots)
+//  DOG.initialize(6,8,9,0,1,DOGM128);   //SS = 6, 8,9= use Software SPI, 0 = A0, 1 = RESET, EA DOGM128-6 (=128x64 dots)
 #else
   DOG.initialize(6,10,11,8,9,DOGM128);   //SS = 10, 0,0= use Hardware SPI, 9 = A0, 4 = RESET, EA DOGM128-6 (=128x64 dots)
 #endif
@@ -113,7 +119,7 @@ void setup() {
   DOG.picture(0,0,logo);
   delay(1000);
   DOG.string(30,3,UBUNTUMONO_B_16,"ArduHMI");
-  DOG.string(20,5,UBUNTUMONO_B_16,"23.06.2019");
+  DOG.string(20,5,UBUNTUMONO_B_16,"20.08.2019");
   delay(3000);
   DOG.clear();  //clear whole display
   DOG.string(0,0,UBUNTUMONO_B_32,"1;:23.456,7890");
@@ -199,5 +205,9 @@ void mono_backlight(byte brightness)
 #if defined(ARDUINO_ARCH_AVR)
   // AVR-specific code
   analogWrite(backlight_led, brightness);  
+#elif defined(ARDUINO_ARCH_SAMD)
+  // SAMD-specific code
+  if(brightness>0) digitalWrite(backlight_led,  HIGH);
+  else digitalWrite(backlight_led,  LOW);
 #endif
 }
