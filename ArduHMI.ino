@@ -1,6 +1,5 @@
 /* sample code for ArduHMI */
 /* see project documentation under http://arduhmi.generationmake.de/ */
-//#include <dog_7565R.h>
 #include <DogGraphicDisplay.h>
 #include "ubuntumono_b_32.h"
 #include "ubuntumono_b_16.h"
@@ -83,10 +82,10 @@ int read_LCD_buttons()
   return btnNONE;  // when all others fail, return this...
 }
 
-dog_7565R DOG;
+dogGraphicDisplay DOG;
 
-//int backlight_led = 10;
-int backlight_led = A6;
+int backlight_led = 10;
+//int backlight_led = A6;
 void init_backlight(boolean mono);
 void mono_backlight(byte brightness);
 
@@ -94,19 +93,19 @@ void mono_backlight(byte brightness);
 void sample_screen(void)
 {
   DOG.clear();  //clear whole display
-  DOG.string(11,0,UBUNTUMONO_B_8,"www.generationmake.de");
-  DOG.string(15,1,UBUNTUMONO_B_16,"EA DOGM128-6");
-  DOG.string(40,3,UBUNTUMONO_B_16,"ArduHMI");
+  DOG.string(0,0,UBUNTUMONO_B_8,"www.generationmake.de",ALIGN_CENTER);
+//  DOG.string(0,1,UBUNTUMONO_B_16,"EA DOGS102-6",ALIGN_CENTER,STYLE_FULL_INVERSE);
+  DOG.string(0,1,UBUNTUMONO_B_16,"EA DOGM128-6",ALIGN_CENTER,STYLE_FULL_INVERSE);
 }
 
 void setup() {
   // put your setup code here, to run once:
 
   init_backlight(true); //use monochrome backlight in this sample code. Please change it to your configuration
-//  DOG.initialize(6,5,7,8,9,DOGM132);   //SS = 10, 0,0= use Hardware SPI, 9 = A0, 4 = RESET, EA DOGM132-5 (=132x32 dots)
-//  DOG.initialize(6,5,7,8,9,DOGM128);   //SS = 10, 0,0= use Hardware SPI, 9 = A0, 4 = RESET, EA DOGM128-6 (=128x64 dots)
 #if defined(ARDUINO_ARCH_AVR)
   // AVR-specific code
+//  DOG.initialize(6,0,0,8,9,DOGS102);   //SS = 10, 0,0= use Hardware SPI, 9 = A0, 4 = RESET, EA DOGM102-6 (=102x64 dots)
+//  DOG.contrast(0x08);
   DOG.initialize(6,0,0,8,9,DOGM128);   //SS = 10, 0,0= use Hardware SPI, 9 = A0, 4 = RESET, EA DOGM128-6 (=128x64 dots)
 #elif defined(ARDUINO_ARCH_SAMD)
   // SAMD-specific code
@@ -118,12 +117,24 @@ void setup() {
   DOG.clear();  //clear whole display
   DOG.picture(0,0,logo);
   delay(1000);
-  DOG.string(30,3,UBUNTUMONO_B_16,"ArduHMI");
-  DOG.string(20,5,UBUNTUMONO_B_16,"20.08.2019");
+  DOG.string(0,3,UBUNTUMONO_B_16,"ArduHMI",ALIGN_CENTER,STYLE_FULL_INVERSE);
+  DOG.string(0,5,UBUNTUMONO_B_16,"18.10.2019",ALIGN_CENTER);
+  delay(3000);
+  DOG.all_pixel_on(true);
+  delay(3000);
+  DOG.all_pixel_on(false);
+  delay(3000);
+  DOG.inverse(true);
+  delay(3000);
+  DOG.inverse(false);
+  delay(3000);
+  DOG.sleep(true);
+  delay(3000);
+  DOG.sleep(false);
   delay(3000);
   DOG.clear();  //clear whole display
   DOG.string(0,0,UBUNTUMONO_B_32,"1;:23.456,7890");
-  DOG.string(0,4,UBUNTUMONO_B_32,"ABCDEFGH");
+  DOG.string(0,4,UBUNTUMONO_B_32,"ABCDEFGH",ALIGN_LEFT,STYLE_INVERSE);
   delay(3000);
   mono_backlight(255);    //BL to full brightness
   DOG.view(VIEW_BOTTOM);  //default viewing direction
@@ -134,11 +145,14 @@ void loop() {
   int lcd_key     = 0;
   char buffer[50];
   static byte backlight=255;
+  static int offset=DOG.display_width();
+  offset--;
+  if(offset<-55) offset=DOG.display_width();
+  DOG.string(offset,3,UBUNTUMONO_B_16,"ArduHMI",ALIGN_LEFT,STYLE_NORMAL);
 
   // put your main code here, to run repeatedly:
-  DOG.rectangle(96,6,127,6,0);
-  DOG.rectangle(96,7,127,7,0);
-  DOG.string(96,6,UBUNTUMONO_B_16,itoa(analogRead(0),buffer,10));  // display raw value of analog in
+  DOG.rectangle(DOG.display_width()-32,6,DOG.display_width(),7,0);
+  DOG.string(0,6,UBUNTUMONO_B_16,itoa(analogRead(0),buffer,10),ALIGN_RIGHT);  // display raw value of analog in
 
   lcd_key = read_LCD_buttons();  // read the buttons
 
@@ -147,47 +161,45 @@ void loop() {
   {
     case btnRIGHT:               // go to next position
       {
-        DOG.string(44,6,UBUNTUMONO_B_16,"right ");
+        DOG.string(0,6,UBUNTUMONO_B_16,"right ",ALIGN_CENTER);
         break;
       }
     case btnLEFT:               // go to next position
       {
-        DOG.string(44,6,UBUNTUMONO_B_16," left ");
+        DOG.string(0,6,UBUNTUMONO_B_16," left ",ALIGN_CENTER);
         break;
       }
     case btnUP:               // go to next position
       {
         if(backlight<255) backlight++;
         mono_backlight(backlight);    //BL to half brightness
-        DOG.rectangle(0,6,24,6,0);
-        DOG.rectangle(0,7,24,7,0);
+        DOG.rectangle(0,6,24,7,0);
         DOG.string(0,6,UBUNTUMONO_B_16,itoa(backlight,buffer,10));
-        DOG.string(44,6,UBUNTUMONO_B_16,"  up  ");
+        DOG.string(0,6,UBUNTUMONO_B_16,"  up  ",ALIGN_CENTER);
         break;
       }
     case btnDOWN:               // go to next position
       {
         if(backlight>0) backlight--;
         mono_backlight(backlight);    //BL to half brightness
-        DOG.rectangle(0,6,24,6,0);
-        DOG.rectangle(0,7,24,7,0);
+        DOG.rectangle(0,6,24,7,0);
         DOG.string(0,6,UBUNTUMONO_B_16,itoa(backlight,buffer,10));
-        DOG.string(44,6,UBUNTUMONO_B_16," down ");
+        DOG.string(0,6,UBUNTUMONO_B_16," down ",ALIGN_CENTER);
         break;
       }
     case btnSELECT:               // go to next position
       {
-        DOG.string(44,6,UBUNTUMONO_B_16,"select");
+        DOG.string(0,6,UBUNTUMONO_B_16,"select",ALIGN_CENTER);
         break;
       }
     case btnNONE:               // go to next position
       {
-        DOG.string(44,6,UBUNTUMONO_B_16," none ");
+        DOG.string(0,6,UBUNTUMONO_B_16," none ",ALIGN_CENTER);
         break;
       }
   }
 
-  delay(20);
+  delay(50);
 }
 
 //The following functions controll the backlight with a PWM. Not needed for the display content
